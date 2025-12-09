@@ -207,8 +207,9 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
         // 3. 口
         drawImg(mouthImg);
         
-        // 4. 髪型（最前面）- 髪色を適用
-        drawHairWithColor(hairImg, config.hairColor);
+        // 4. 髪型（最前面）
+        // 一旦髪色機能を無効化して元の画像を表示
+        drawImg(hairImg);
         
         // デバッグ用：赤い枠線を描画してCanvasが動いているか確認
         // ctx.strokeStyle = 'red';
