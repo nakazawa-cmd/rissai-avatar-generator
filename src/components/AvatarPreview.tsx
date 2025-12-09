@@ -121,17 +121,17 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
 
         // 描画順序（重要）：背面 -> 前面
         
-        // 1. 髪型（最背面）
-        drawImg(hairImg);
-        
-        // 2. 頬
+        // 1. 頬（最背面）
         drawImg(cheekImg);
 
-        // 3. 目
+        // 2. 目
         drawImg(eyesImg);
         
-        // 4. 口
+        // 3. 口
         drawImg(mouthImg);
+        
+        // 4. 髪型（最前面）
+        drawImg(hairImg);
         
         // デバッグ用：赤い枠線を描画してCanvasが動いているか確認
         // ctx.strokeStyle = 'red';
