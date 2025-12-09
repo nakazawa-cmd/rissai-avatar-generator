@@ -4,11 +4,14 @@ import { loadPartImage } from '../utils/imageLoader';
 
 /**
  * 髪色のカラーコード定義
+ * - ブラウン: 明るい茶髪
+ * - ブロンド: プラチナブロンド（ブリーチ3回風）
+ * - ブラック: 真っ黒
  */
 const HAIR_COLORS: Record<HairColorId, string> = {
-  color_1: '#5D4037', // ブラウン
-  color_2: '#D4A76A', // ブロンド
-  color_3: '#2c2c2c', // ブラック
+  color_1: '#8B5A2B', // ブラウン（明るい茶髪）
+  color_2: '#E8DCC8', // ブロンド（プラチナブロンド風）
+  color_3: '#0a0a0a', // ブラック（真っ黒）
 };
 
 interface AvatarPreviewProps {
@@ -142,14 +145,37 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
           // 髪型画像を描画
           offCtx.drawImage(img, 0, 0, size, size);
           
-          // multiplyブレンドモードで髪色を重ねる
-          offCtx.globalCompositeOperation = 'multiply';
-          offCtx.fillStyle = HAIR_COLORS[colorId];
-          offCtx.fillRect(0, 0, size, size);
+          // 画像データを取得してグレースケールに変換
+          const imageData = offCtx.getImageData(0, 0, size, size);
+          const data = imageData.data;
           
-          // 元の画像の透明部分を維持
-          offCtx.globalCompositeOperation = 'destination-in';
-          offCtx.drawImage(img, 0, 0, size, size);
+          // 選択した髪色を取得
+          const hairColor = HAIR_COLORS[colorId];
+          const r = parseInt(hairColor.slice(1, 3), 16);
+          const g = parseInt(hairColor.slice(3, 5), 16);
+          const b = parseInt(hairColor.slice(5, 7), 16);
+          
+          // 各ピクセルを処理
+          for (let i = 0; i < data.length; i += 4) {
+            // アルファ値が0（透明）なら処理しない
+            if (data[i + 3] === 0) continue;
+            
+            // 元のピクセルの明度を計算
+            const luminance = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) / 255;
+            
+            // 肌色かどうかを判定（R > 180, G > 140, B > 100 かつ R > B）
+            const isSkinTone = data[i] > 180 && data[i + 1] > 140 && data[i + 2] > 100 && data[i] > data[i + 2];
+            
+            if (!isSkinTone) {
+              // 肌色以外は髪色を適用（明度を保持）
+              data[i] = Math.round(r * luminance + (255 - r) * luminance * 0.3);     // R
+              data[i + 1] = Math.round(g * luminance + (255 - g) * luminance * 0.3); // G
+              data[i + 2] = Math.round(b * luminance + (255 - b) * luminance * 0.3); // B
+            }
+            // 肌色部分はそのまま維持
+          }
+          
+          offCtx.putImageData(imageData, 0, 0);
           
           // メインキャンバスに描画
           ctx.drawImage(offscreen, 0, 0);
