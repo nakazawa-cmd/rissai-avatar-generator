@@ -1,6 +1,15 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle, useState } from 'react';
-import type { AvatarConfig } from '../types';
+import type { AvatarConfig, HairColorId } from '../types';
 import { loadPartImage } from '../utils/imageLoader';
+
+/**
+ * 髪色のカラーコード定義
+ */
+const HAIR_COLORS: Record<HairColorId, string> = {
+  color_1: '#5D4037', // ブラウン
+  color_2: '#D4A76A', // ブロンド
+  color_3: '#2c2c2c', // ブラック
+};
 
 interface AvatarPreviewProps {
   config: AvatarConfig;
@@ -119,6 +128,33 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
           ctx.drawImage(img, 0, 0, size, size);
         };
 
+        // 髪型を髪色付きで描画するヘルパー
+        const drawHairWithColor = (img: HTMLImageElement | null, colorId: HairColorId) => {
+          if (!img) return;
+          
+          // オフスクリーンキャンバスを作成
+          const offscreen = document.createElement('canvas');
+          offscreen.width = size;
+          offscreen.height = size;
+          const offCtx = offscreen.getContext('2d');
+          if (!offCtx) return;
+          
+          // 髪型画像を描画
+          offCtx.drawImage(img, 0, 0, size, size);
+          
+          // multiplyブレンドモードで髪色を重ねる
+          offCtx.globalCompositeOperation = 'multiply';
+          offCtx.fillStyle = HAIR_COLORS[colorId];
+          offCtx.fillRect(0, 0, size, size);
+          
+          // 元の画像の透明部分を維持
+          offCtx.globalCompositeOperation = 'destination-in';
+          offCtx.drawImage(img, 0, 0, size, size);
+          
+          // メインキャンバスに描画
+          ctx.drawImage(offscreen, 0, 0);
+        };
+
         // 描画順序（重要）：背面 -> 前面
         
         // 1. 頬（最背面）
@@ -130,8 +166,8 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
         // 3. 口
         drawImg(mouthImg);
         
-        // 4. 髪型（最前面）
-        drawImg(hairImg);
+        // 4. 髪型（最前面）- 髪色を適用
+        drawHairWithColor(hairImg, config.hairColor);
         
         // デバッグ用：赤い枠線を描画してCanvasが動いているか確認
         // ctx.strokeStyle = 'red';
