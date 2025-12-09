@@ -145,17 +145,21 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
           // 1. 元の画像を描画
           offCtx.drawImage(img, 0, 0, size, size);
           
-          // 2. 画像データを取得
+          // 2. 元の画像データを保存（肌色復元用）
+          const originalImageData = offCtx.getImageData(0, 0, size, size);
+          const originalData = new Uint8ClampedArray(originalImageData.data);
+          
+          // 3. 画像データを取得
           const imageData = offCtx.getImageData(0, 0, size, size);
           const data = imageData.data;
           
-          // 3. 選択した髪色を取得
+          // 4. 選択した髪色を取得
           const hairColor = HAIR_COLORS[colorId];
           const targetR = parseInt(hairColor.slice(1, 3), 16);
           const targetG = parseInt(hairColor.slice(3, 5), 16);
           const targetB = parseInt(hairColor.slice(5, 7), 16);
           
-          // 4. 各ピクセルを処理
+          // 5. 各ピクセルを処理
           for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
@@ -165,30 +169,30 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
             // 透明ならスキップ
             if (a === 0) continue;
             
-            // 肌色判定（より厳密に）
-            const isSkinTone = r > 180 && g > 140 && b > 100 && r > b && 
-                              (r - b) > 20 && (g - b) > 10;
+            // 肌色判定（緩和版）
+            const isSkinTone = (r > 160 && g > 120 && b > 80 && r > b);
             
             if (!isSkinTone) {
               // 肌色以外はグレースケール化してから髪色を適用
-              // 明度を計算
               const luminance = r * 0.299 + g * 0.587 + b * 0.114;
+              const ratio = Math.min(luminance / 255, 1);
               
-              // 明度を保持しながら髪色を適用（より強力に）
-              const ratio = luminance / 255;
-              
-              // 髪色を適用（元の色の影響を完全に排除）
-              data[i] = Math.round(targetR * ratio);     // R
-              data[i + 1] = Math.round(targetG * ratio); // G
-              data[i + 2] = Math.round(targetB * ratio); // B
+              // 髪色を適用
+              data[i] = Math.round(targetR * ratio);
+              data[i + 1] = Math.round(targetG * ratio);
+              data[i + 2] = Math.round(targetB * ratio);
+            } else {
+              // 肌色部分は元の色を保持
+              data[i] = originalData[i];
+              data[i + 1] = originalData[i + 1];
+              data[i + 2] = originalData[i + 2];
             }
-            // 肌色部分はそのまま維持（元の色を保持）
           }
           
-          // 5. 処理した画像データを描画
+          // 6. 処理した画像データを描画
           offCtx.putImageData(imageData, 0, 0);
           
-          // 6. メインキャンバスに描画
+          // 7. メインキャンバスに描画
           ctx.drawImage(offscreen, 0, 0);
         };
 
