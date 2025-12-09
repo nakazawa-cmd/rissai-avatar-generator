@@ -87,6 +87,9 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // デバッグ用：コードのバージョンを表示
+  console.log('AvatarPreview version: 2025-01-09-v2');
+
   useEffect(() => {
     let active = true;
     const canvas = canvasRef.current;
