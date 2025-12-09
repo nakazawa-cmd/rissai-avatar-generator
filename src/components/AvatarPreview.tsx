@@ -4,14 +4,14 @@ import { loadPartImage } from '../utils/imageLoader';
 
 /**
  * 髪色のカラーコード定義
- * - ブラウン: 明るい茶髪
- * - ブロンド: プラチナブロンド（ブリーチ3回風）
+ * - ブラウン: やんちゃな明るい茶髪（赤みがかった）
+ * - ブロンド: 外人のような明るい金髪（黄色みがかった）
  * - ブラック: 真っ黒
  */
 const HAIR_COLORS: Record<HairColorId, string> = {
-  color_1: '#8B5A2B', // ブラウン（明るい茶髪）
-  color_2: '#E8DCC8', // ブロンド（プラチナブロンド風）
-  color_3: '#0a0a0a', // ブラック（真っ黒）
+  color_1: '#B8860B', // ブラウン（やんちゃな明るい茶髪）
+  color_2: '#FFD700', // ブロンド（明るい金髪）
+  color_3: '#000000', // ブラック（真っ黒）
 };
 
 interface AvatarPreviewProps {
@@ -142,42 +142,53 @@ export const AvatarPreview = forwardRef<AvatarPreviewHandle, AvatarPreviewProps>
           const offCtx = offscreen.getContext('2d');
           if (!offCtx) return;
           
-          // 髪型画像を描画
+          // 1. 元の画像を描画
           offCtx.drawImage(img, 0, 0, size, size);
           
-          // 画像データを取得してグレースケールに変換
+          // 2. 画像データを取得
           const imageData = offCtx.getImageData(0, 0, size, size);
           const data = imageData.data;
           
-          // 選択した髪色を取得
+          // 3. 選択した髪色を取得
           const hairColor = HAIR_COLORS[colorId];
-          const r = parseInt(hairColor.slice(1, 3), 16);
-          const g = parseInt(hairColor.slice(3, 5), 16);
-          const b = parseInt(hairColor.slice(5, 7), 16);
+          const targetR = parseInt(hairColor.slice(1, 3), 16);
+          const targetG = parseInt(hairColor.slice(3, 5), 16);
+          const targetB = parseInt(hairColor.slice(5, 7), 16);
           
-          // 各ピクセルを処理
+          // 4. 各ピクセルを処理
           for (let i = 0; i < data.length; i += 4) {
-            // アルファ値が0（透明）なら処理しない
-            if (data[i + 3] === 0) continue;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
             
-            // 元のピクセルの明度を計算
-            const luminance = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) / 255;
+            // 透明ならスキップ
+            if (a === 0) continue;
             
-            // 肌色かどうかを判定（R > 180, G > 140, B > 100 かつ R > B）
-            const isSkinTone = data[i] > 180 && data[i + 1] > 140 && data[i + 2] > 100 && data[i] > data[i + 2];
+            // 肌色判定（より厳密に）
+            const isSkinTone = r > 180 && g > 140 && b > 100 && r > b && 
+                              (r - b) > 20 && (g - b) > 10;
             
             if (!isSkinTone) {
-              // 肌色以外は髪色を適用（明度を保持）
-              data[i] = Math.round(r * luminance + (255 - r) * luminance * 0.3);     // R
-              data[i + 1] = Math.round(g * luminance + (255 - g) * luminance * 0.3); // G
-              data[i + 2] = Math.round(b * luminance + (255 - b) * luminance * 0.3); // B
+              // 肌色以外はグレースケール化してから髪色を適用
+              // 明度を計算
+              const luminance = r * 0.299 + g * 0.587 + b * 0.114;
+              
+              // 明度を保持しながら髪色を適用（より強力に）
+              const ratio = luminance / 255;
+              
+              // 髪色を適用（元の色の影響を完全に排除）
+              data[i] = Math.round(targetR * ratio);     // R
+              data[i + 1] = Math.round(targetG * ratio); // G
+              data[i + 2] = Math.round(targetB * ratio); // B
             }
-            // 肌色部分はそのまま維持
+            // 肌色部分はそのまま維持（元の色を保持）
           }
           
+          // 5. 処理した画像データを描画
           offCtx.putImageData(imageData, 0, 0);
           
-          // メインキャンバスに描画
+          // 6. メインキャンバスに描画
           ctx.drawImage(offscreen, 0, 0);
         };
 
