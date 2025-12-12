@@ -1,6 +1,5 @@
 import type { 
   HairId, 
-  HairColorId, 
   EyesId, 
   MouthId,
   CheekId
@@ -79,32 +78,6 @@ export function HairSelector({ selected, onSelect }: HairSelectorProps) {
       selected={selected}
       onSelect={(val) => val && onSelect(val)}
       renderOption={(option) => `スタイル ${option.replace('hair_', '')}`}
-    />
-  );
-}
-
-interface HairColorSelectorProps {
-  selected: HairColorId;
-  onSelect: (value: HairColorId) => void;
-}
-
-/**
- * 髪色選択コンポーネント
- */
-export function HairColorSelector({ selected, onSelect }: HairColorSelectorProps) {
-  const colorLabels: Record<HairColorId, string> = {
-    color_1: 'ブラウン',
-    color_2: 'ブロンド',
-    color_3: 'ブラック',
-  };
-
-  return (
-    <PartSelector
-      title="髪色"
-      options={['color_1', 'color_2', 'color_3'] as HairColorId[]}
-      selected={selected}
-      onSelect={(val) => val && onSelect(val)}
-      renderOption={(option) => colorLabels[option]}
     />
   );
 }

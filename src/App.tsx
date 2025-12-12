@@ -5,7 +5,6 @@ import { downloadAvatarAsPNG } from './utils/download';
 import { AvatarPreview, type AvatarPreviewHandle } from './components/AvatarPreview';
 import {
   HairSelector,
-  HairColorSelector,
   EyesSelector,
   MouthSelector,
   CheekSelector,
@@ -13,7 +12,6 @@ import {
 
 const DEFAULT_CONFIG: AvatarConfig = {
   hair: 'hair_1',
-  hairColor: 'color_1',
   eyes: 'eyes_1',
   mouth: 'mouth_1',
   cheeks: 'no_blush',
@@ -80,11 +78,6 @@ function App() {
               <HairSelector
                 selected={config.hair}
                 onSelect={(hair) => setConfig({ ...config, hair })}
-              />
-              
-              <HairColorSelector
-                selected={config.hairColor}
-                onSelect={(hairColor) => setConfig({ ...config, hairColor })}
               />
               
               <EyesSelector

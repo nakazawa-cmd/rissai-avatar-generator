@@ -1,7 +1,5 @@
 export type HairId = `hair_${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
 
-export type HairColorId = 'color_1' | 'color_2' | 'color_3';
-
 export type EyesId = `eyes_${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17}`;
 
 export type MouthId = `mouth_${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17}`;
@@ -10,7 +8,6 @@ export type CheekId = 'blush' | 'no_blush';
 
 export type AvatarConfig = {
   hair: HairId;
-  hairColor: HairColorId;
   eyes: EyesId;
   mouth: MouthId;
   cheeks: CheekId;
@@ -20,8 +17,6 @@ export const HAIR_OPTIONS: HairId[] = [
   'hair_1', 'hair_2', 'hair_3', 'hair_4', 'hair_5',
   'hair_6', 'hair_7', 'hair_8', 'hair_9', 'hair_10'
 ];
-
-export const HAIR_COLOR_OPTIONS: HairColorId[] = ['color_1', 'color_2', 'color_3'];
 
 export const EYES_OPTIONS: EyesId[] = [
   'eyes_1', 'eyes_2', 'eyes_3', 'eyes_4', 'eyes_5',
